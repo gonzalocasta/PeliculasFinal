@@ -1,7 +1,39 @@
 // TMDB API Configuration
+// Note: For production, this token should be stored securely on a backend server
+// This is a read-only API token provided by the user for this demo project
 const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMzYzODA2NzNhNTVlZGQyMGUyZDE2NTI0YTg4MTUzZCIsIm5iZiI6MTc2Mjg4MTAwNS4wNzksInN1YiI6IjY5MTM2ZGVkYzFlNzlkNzNhYmFhMjEwNyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.hMEIUzVIxyJ_gxHIRy7rh8CjE5Y3vgnr5a0SSnOUuIk';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
+
+// HTML escape function to prevent XSS
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// Escape for use in HTML attributes
+function escapeAttr(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// Validate YouTube video ID format (alphanumeric, hyphens, underscores only)
+function isValidYouTubeId(id) {
+    if (!id) return false;
+    return /^[a-zA-Z0-9_-]{11}$/.test(id);
+}
+
+// Validate media type
+function isValidMediaType(type) {
+    return type === 'movie' || type === 'tv';
+}
 
 // API fetch helper
 async function fetchTMDB(endpoint) {
@@ -181,11 +213,13 @@ function renderLeaderboard() {
 function createMovieCard(item) {
     const ratingClass = item.rating >= 70 ? 'high' : item.rating >= 50 ? 'medium' : 'low';
     const ratingDisplay = item.rating > 0 ? `${item.rating}<sup>%</sup>` : 'NR';
+    const safeMediaType = isValidMediaType(item.mediaType) ? item.mediaType : 'movie';
+    const safeId = parseInt(item.id, 10);
     
     return `
-        <div class="card" onclick="openMovieDetail(${item.id}, '${item.mediaType}')">
+        <div class="card" onclick="openMovieDetail(${safeId}, '${safeMediaType}')">
             <div class="card-poster">
-                <img src="${item.poster}" alt="${item.title}" loading="lazy">
+                <img src="${escapeAttr(item.poster)}" alt="${escapeAttr(item.title)}" loading="lazy">
                 <div class="card-rating ${ratingClass}">
                     <span>${ratingDisplay}</span>
                 </div>
@@ -194,25 +228,27 @@ function createMovieCard(item) {
                 </div>
             </div>
             <div class="card-info">
-                <div class="card-title">${item.title}</div>
-                <div class="card-date">${item.date}</div>
+                <div class="card-title">${escapeHtml(item.title)}</div>
+                <div class="card-date">${escapeHtml(item.date)}</div>
             </div>
         </div>
     `;
 }
 
 function createTrailerCard(item) {
+    const safeVideoKey = isValidYouTubeId(item.videoKey) ? item.videoKey : '';
+    
     return `
-        <div class="trailer-card" onclick="playTrailer('${item.videoKey}', '${item.title}')">
+        <div class="trailer-card" onclick="playTrailer('${escapeAttr(safeVideoKey)}', '${escapeAttr(item.title)}')">
             <div class="trailer-thumbnail">
-                <img src="${item.thumbnail}" alt="${item.title}" loading="lazy">
+                <img src="${escapeAttr(item.thumbnail)}" alt="${escapeAttr(item.title)}" loading="lazy">
                 <div class="play-icon">
                     <i class="fas fa-play"></i>
                 </div>
             </div>
             <div class="trailer-info">
-                <div class="trailer-title">${item.title}</div>
-                <div class="trailer-subtitle">${item.subtitle}</div>
+                <div class="trailer-title">${escapeHtml(item.title)}</div>
+                <div class="trailer-subtitle">${escapeHtml(item.subtitle)}</div>
             </div>
         </div>
     `;
@@ -221,18 +257,18 @@ function createTrailerCard(item) {
 function createLeaderboardItem(item) {
     return `
         <div class="leaderboard-item">
-            <div class="leaderboard-avatar" style="background-color: ${item.color}">
-                ${item.avatar}
+            <div class="leaderboard-avatar" style="background-color: ${escapeAttr(item.color)}">
+                ${escapeHtml(item.avatar)}
             </div>
             <div class="leaderboard-info">
-                <div class="leaderboard-name">${item.name}</div>
+                <div class="leaderboard-name">${escapeHtml(item.name)}</div>
                 <div class="leaderboard-stats">
-                    <span>${item.allTime}</span>
-                    <span>${item.thisWeek}</span>
+                    <span>${escapeHtml(item.allTime)}</span>
+                    <span>${escapeHtml(item.thisWeek)}</span>
                 </div>
             </div>
             <div class="leaderboard-bar">
-                <div class="leaderboard-bar-fill" style="width: ${item.percentage}%"></div>
+                <div class="leaderboard-bar-fill" style="width: ${parseInt(item.percentage, 10)}%"></div>
             </div>
         </div>
     `;
@@ -240,6 +276,18 @@ function createLeaderboardItem(item) {
 
 // Movie Detail Modal Functions
 async function openMovieDetail(id, mediaType) {
+    // Validate inputs
+    const safeId = parseInt(id, 10);
+    if (isNaN(safeId) || safeId <= 0) {
+        console.error('Invalid movie ID');
+        return;
+    }
+    
+    if (!isValidMediaType(mediaType)) {
+        console.error('Invalid media type');
+        return;
+    }
+    
     const modal = document.getElementById('movie-modal');
     const modalContent = document.getElementById('movie-detail-content');
     
@@ -249,7 +297,7 @@ async function openMovieDetail(id, mediaType) {
     
     try {
         // Fetch movie/tv details with credits
-        const details = await fetchTMDB(`/${mediaType}/${id}?language=es-ES&append_to_response=credits,videos`);
+        const details = await fetchTMDB(`/${mediaType}/${safeId}?language=es-ES&append_to_response=credits,videos`);
         
         // Get director(s) or creator(s)
         let director = null;
@@ -282,38 +330,41 @@ async function openMovieDetail(id, mediaType) {
         const rating = Math.round(details.vote_average * 10);
         const ratingClass = rating >= 70 ? 'high' : rating >= 50 ? 'medium' : 'low';
         
+        // Validate trailer key
+        const safeTrailerKey = trailer && isValidYouTubeId(trailer.key) ? trailer.key : null;
+        
         modalContent.innerHTML = `
-            <div class="movie-detail-header" style="background-image: linear-gradient(to right, rgba(31.5, 31.5, 31.5, 1) calc((50vw - 170px) - 340px), rgba(31.5, 31.5, 31.5, 0.84) 50%, rgba(31.5, 31.5, 31.5, 0.84) 100%), url('${backdropUrl}');">
+            <div class="movie-detail-header" style="background-image: linear-gradient(to right, rgba(31.5, 31.5, 31.5, 1) calc((50vw - 170px) - 340px), rgba(31.5, 31.5, 31.5, 0.84) 50%, rgba(31.5, 31.5, 31.5, 0.84) 100%), url('${escapeAttr(backdropUrl)}');">
                 <div class="movie-detail-poster">
-                    <img src="${posterUrl}" alt="${title}">
+                    <img src="${escapeAttr(posterUrl)}" alt="${escapeAttr(title)}">
                 </div>
                 <div class="movie-detail-info">
                     <h1 class="movie-detail-title">
-                        ${title} <span class="movie-year">(${getYear(releaseDate)})</span>
+                        ${escapeHtml(title)} <span class="movie-year">(${getYear(releaseDate)})</span>
                     </h1>
                     <div class="movie-detail-facts">
-                        <span class="movie-date">${formatDate(releaseDate)} (ES)</span>
-                        <span class="movie-genres">${genres}</span>
-                        ${runtime ? `<span class="movie-runtime">${formatRuntime(runtime)}</span>` : ''}
+                        <span class="movie-date">${escapeHtml(formatDate(releaseDate))} (ES)</span>
+                        <span class="movie-genres">${escapeHtml(genres)}</span>
+                        ${runtime ? `<span class="movie-runtime">${escapeHtml(formatRuntime(runtime))}</span>` : ''}
                     </div>
                     <div class="movie-detail-actions">
                         <div class="movie-rating-circle ${ratingClass}">
                             <span>${rating}<sup>%</sup></span>
                         </div>
                         <span class="rating-label">Puntuación<br>de usuarios</span>
-                        ${trailer ? `<button class="play-trailer-btn" onclick="playTrailer('${trailer.key}', '${title}')">
+                        ${safeTrailerKey ? `<button class="play-trailer-btn" onclick="playTrailer('${escapeAttr(safeTrailerKey)}', '${escapeAttr(title)}')">
                             <i class="fas fa-play"></i> Reproducir tráiler
                         </button>` : ''}
                     </div>
-                    ${details.tagline ? `<p class="movie-tagline">${details.tagline}</p>` : ''}
+                    ${details.tagline ? `<p class="movie-tagline">${escapeHtml(details.tagline)}</p>` : ''}
                     <div class="movie-overview">
                         <h3>Vista general</h3>
-                        <p>${details.overview || 'Sin descripción disponible.'}</p>
+                        <p>${escapeHtml(details.overview || 'Sin descripción disponible.')}</p>
                     </div>
                     ${director ? `
                     <div class="movie-director">
                         <div class="director-info">
-                            <span class="director-name">${director.name}</span>
+                            <span class="director-name">${escapeHtml(director.name)}</span>
                             <span class="director-job">${mediaType === 'movie' ? 'Director' : 'Creador'}</span>
                         </div>
                     </div>
@@ -325,10 +376,10 @@ async function openMovieDetail(id, mediaType) {
                 <div class="cast-scroll">
                     ${cast.map(person => `
                         <div class="cast-card">
-                            <img src="${person.profile_path ? `${IMAGE_BASE_URL}/w185${person.profile_path}` : 'https://via.placeholder.com/185x278?text=No+Image'}" alt="${person.name}">
+                            <img src="${person.profile_path ? escapeAttr(`${IMAGE_BASE_URL}/w185${person.profile_path}`) : 'https://via.placeholder.com/185x278?text=No+Image'}" alt="${escapeAttr(person.name)}">
                             <div class="cast-info">
-                                <span class="cast-name">${person.name}</span>
-                                <span class="cast-character">${person.character}</span>
+                                <span class="cast-name">${escapeHtml(person.name)}</span>
+                                <span class="cast-character">${escapeHtml(person.character)}</span>
                             </div>
                         </div>
                     `).join('')}
@@ -337,22 +388,22 @@ async function openMovieDetail(id, mediaType) {
             <div class="movie-detail-sidebar">
                 <div class="sidebar-info">
                     <h4>Estado</h4>
-                    <p>${details.status === 'Released' ? 'Estrenada' : details.status === 'Returning Series' ? 'En emisión' : details.status}</p>
+                    <p>${escapeHtml(details.status === 'Released' ? 'Estrenada' : details.status === 'Returning Series' ? 'En emisión' : details.status)}</p>
                 </div>
                 <div class="sidebar-info">
                     <h4>Idioma original</h4>
-                    <p>${getLanguageName(details.original_language)}</p>
+                    <p>${escapeHtml(getLanguageName(details.original_language))}</p>
                 </div>
                 ${details.budget ? `
                 <div class="sidebar-info">
                     <h4>Presupuesto</h4>
-                    <p>${formatMoney(details.budget)}</p>
+                    <p>${escapeHtml(formatMoney(details.budget))}</p>
                 </div>
                 ` : ''}
                 ${details.revenue ? `
                 <div class="sidebar-info">
                     <h4>Ingresos</h4>
-                    <p>${formatMoney(details.revenue)}</p>
+                    <p>${escapeHtml(formatMoney(details.revenue))}</p>
                 </div>
                 ` : ''}
             </div>
@@ -371,6 +422,12 @@ function closeMovieDetail() {
 
 // Trailer player
 function playTrailer(videoKey, title) {
+    // Validate YouTube video ID
+    if (!isValidYouTubeId(videoKey)) {
+        console.error('Invalid YouTube video ID');
+        return;
+    }
+    
     const modal = document.getElementById('trailer-modal');
     const iframe = document.getElementById('trailer-iframe');
     const trailerTitle = document.getElementById('trailer-title');
