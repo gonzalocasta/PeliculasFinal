@@ -24,10 +24,10 @@ function escapeAttr(text) {
         .replace(/>/g, '&gt;');
 }
 
-// Validate YouTube video ID format (alphanumeric, hyphens, underscores, 10-12 chars)
+// Validate YouTube video ID format (alphanumeric, hyphens, underscores, exactly 11 chars)
 function isValidYouTubeId(id) {
     if (!id) return false;
-    return /^[a-zA-Z0-9_-]{10,12}$/.test(id);
+    return /^[a-zA-Z0-9_-]{11}$/.test(id);
 }
 
 // Validate media type
@@ -107,6 +107,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize search
     initSearch();
+    
+    // Smooth horizontal scroll with mouse wheel
+    document.querySelectorAll('.cards-container').forEach(container => {
+        container.addEventListener('wheel', function(e) {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                this.scrollLeft += e.deltaY;
+            }
+        });
+    });
 });
 
 // API Data Loading Functions
@@ -446,7 +456,7 @@ function playTrailer(videoKey, title) {
     const iframe = document.getElementById('trailer-iframe');
     const trailerTitle = document.getElementById('trailer-title');
     
-    iframe.src = `https://www.youtube.com/embed/${videoKey}?autoplay=1`;
+    iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(videoKey)}?autoplay=1`;
     trailerTitle.textContent = title;
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -580,18 +590,6 @@ function initCookieBanner() {
         });
     }
 }
-
-// Smooth horizontal scroll with mouse wheel
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.cards-container').forEach(container => {
-        container.addEventListener('wheel', function(e) {
-            if (e.deltaY !== 0) {
-                e.preventDefault();
-                this.scrollLeft += e.deltaY;
-            }
-        });
-    });
-});
 
 // Close modals on escape key
 document.addEventListener('keydown', function(e) {
