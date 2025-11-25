@@ -193,6 +193,33 @@
         </div>
     </div>
 
+    <!-- Movie Detail Modal -->
+    <div class="modal-overlay" id="movie-modal">
+        <div class="modal-container">
+            <button class="modal-close" onclick="closeMovieDetail()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="movie-detail-content" id="movie-detail-content">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Trailer Modal -->
+    <div class="trailer-modal-overlay" id="trailer-modal">
+        <div class="trailer-modal-container">
+            <div class="trailer-modal-header">
+                <span id="trailer-title"></span>
+                <button class="trailer-close" onclick="closeTrailer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="trailer-iframe-container">
+                <iframe id="trailer-iframe" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
