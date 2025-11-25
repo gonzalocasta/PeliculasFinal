@@ -24,10 +24,10 @@ function escapeAttr(text) {
         .replace(/>/g, '&gt;');
 }
 
-// Validate YouTube video ID format (alphanumeric, hyphens, underscores only)
+// Validate YouTube video ID format (alphanumeric, hyphens, underscores, 10-12 chars)
 function isValidYouTubeId(id) {
     if (!id) return false;
-    return /^[a-zA-Z0-9_-]{11}$/.test(id);
+    return /^[a-zA-Z0-9_-]{10,12}$/.test(id);
 }
 
 // Validate media type
@@ -35,7 +35,7 @@ function isValidMediaType(type) {
     return type === 'movie' || type === 'tv';
 }
 
-// API fetch helper
+// API fetch helper with error handling
 async function fetchTMDB(endpoint) {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         headers: {
@@ -43,6 +43,11 @@ async function fetchTMDB(endpoint) {
             'Content-Type': 'application/json'
         }
     });
+    
+    if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+    }
+    
     return response.json();
 }
 
@@ -132,28 +137,37 @@ async function loadTrailers() {
     
     try {
         const data = await fetchTMDB('/movie/now_playing?language=es-ES&page=1');
-        const moviesWithVideos = [];
         
-        // Get videos for each movie (limit to first 10 for performance)
-        for (const movie of data.results.slice(0, 15)) {
-            const videos = await fetchTMDB(`/movie/${movie.id}/videos?language=es-ES`);
-            let trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-            if (!trailer) {
-                // Try English if no Spanish trailer
-                const enVideos = await fetchTMDB(`/movie/${movie.id}/videos?language=en-US`);
-                trailer = enVideos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+        // Get videos for each movie concurrently using Promise.all
+        const movies = data.results.slice(0, 15);
+        const videoPromises = movies.map(async (movie) => {
+            try {
+                const videos = await fetchTMDB(`/movie/${movie.id}/videos?language=es-ES`);
+                let trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                if (!trailer) {
+                    // Try English if no Spanish trailer
+                    const enVideos = await fetchTMDB(`/movie/${movie.id}/videos?language=en-US`);
+                    trailer = enVideos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                }
+                if (trailer) {
+                    return {
+                        id: movie.id,
+                        title: movie.title,
+                        subtitle: trailer.name,
+                        thumbnail: movie.backdrop_path ? `${IMAGE_BASE_URL}/w533_and_h300_bestv2${movie.backdrop_path}` : `${IMAGE_BASE_URL}/w533_and_h300_bestv2${movie.poster_path}`,
+                        videoKey: trailer.key,
+                        mediaType: 'movie'
+                    };
+                }
+                return null;
+            } catch (err) {
+                // Skip movies where video fetch fails
+                return null;
             }
-            if (trailer) {
-                moviesWithVideos.push({
-                    id: movie.id,
-                    title: movie.title,
-                    subtitle: trailer.name,
-                    thumbnail: movie.backdrop_path ? `${IMAGE_BASE_URL}/w533_and_h300_bestv2${movie.backdrop_path}` : `${IMAGE_BASE_URL}/w533_and_h300_bestv2${movie.poster_path}`,
-                    videoKey: trailer.key,
-                    mediaType: 'movie'
-                });
-            }
-        }
+        });
+        
+        const results = await Promise.all(videoPromises);
+        const moviesWithVideos = results.filter(item => item !== null);
         
         container.innerHTML = moviesWithVideos.map(item => createTrailerCard(item)).join('');
     } catch (error) {
@@ -521,10 +535,17 @@ function initSearch() {
 }
 
 async function performSearch(query) {
-    if (!query.trim()) return;
+    // Validate and sanitize search query
+    if (!query || typeof query !== 'string') return;
+    
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+    
+    // Limit query length to prevent abuse
+    const sanitizedQuery = trimmedQuery.slice(0, 100);
     
     try {
-        const data = await fetchTMDB(`/search/multi?language=es-ES&query=${encodeURIComponent(query)}&page=1`);
+        const data = await fetchTMDB(`/search/multi?language=es-ES&query=${encodeURIComponent(sanitizedQuery)}&page=1`);
         
         if (data.results && data.results.length > 0) {
             // Show first result
