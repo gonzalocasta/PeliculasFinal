@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Movie Database (TMDB)</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <nav class="nav-container">
+            <div class="nav-left">
+                <a href="#" class="logo">
+                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo">
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="#">Películas <i class="fas fa-caret-down"></i></a></li>
+                    <li><a href="#">Series <i class="fas fa-caret-down"></i></a></li>
+                    <li><a href="#">Gente <i class="fas fa-caret-down"></i></a></li>
+                    <li><a href="#">Más <i class="fas fa-caret-down"></i></a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <a href="#" class="nav-icon"><i class="fas fa-plus"></i></a>
+                <a href="#" class="nav-lang">es</a>
+                <a href="#" class="nav-icon"><i class="fas fa-bell"></i></a>
+                <a href="#" class="user-avatar">G</a>
+                <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Te damos la bienvenida.</h1>
+            <h2>Millones de películas, series y gente por descubrir. Explora ya.</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar una película, serie, persona...">
+                <button type="submit">Buscar</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tendencias Section -->
+    <section class="section tendencias">
+        <div class="section-header">
+            <h2>Tendencias</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-filter="hoy">Hoy</button>
+                <button class="toggle-btn" data-filter="semana">Esta semana</button>
+            </div>
+        </div>
+        <div class="cards-container">
+            <div class="cards-scroll" id="tendencias-cards">
+                <!-- Cards will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Últimos Tráileres Section -->
+    <section class="section trailers">
+        <div class="trailers-bg">
+            <div class="section-header light">
+                <h2>Últimos tráileres</h2>
+                <div class="toggle-buttons light">
+                    <button class="toggle-btn active" data-filter="popular">Popular</button>
+                    <button class="toggle-btn" data-filter="retransmision">Retransmisión</button>
+                    <button class="toggle-btn" data-filter="tv">En televisión</button>
+                    <button class="toggle-btn" data-filter="alquiler">En alquiler</button>
+                    <button class="toggle-btn" data-filter="cines">En cines</button>
+                </div>
+            </div>
+            <div class="cards-container">
+                <div class="cards-scroll" id="trailers-cards">
+                    <!-- Trailer cards will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lo más popular Section -->
+    <section class="section popular">
+        <div class="section-header">
+            <h2>Lo más popular</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-filter="streaming">Retransmisión</button>
+                <button class="toggle-btn" data-filter="tv">En televisión</button>
+                <button class="toggle-btn" data-filter="alquiler">En alquiler</button>
+                <button class="toggle-btn" data-filter="cines">En cines</button>
+            </div>
+        </div>
+        <div class="cards-container">
+            <div class="cards-scroll" id="popular-cards">
+                <!-- Popular cards will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Ver Gratis Section -->
+    <section class="section ver-gratis">
+        <div class="section-header">
+            <h2>Ver gratis</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-filter="peliculas">Películas</button>
+                <button class="toggle-btn" data-filter="tv">Televisión</button>
+            </div>
+        </div>
+        <div class="cards-container">
+            <div class="cards-scroll" id="gratis-cards">
+                <!-- Free cards will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabla de Clasificación Section -->
+    <section class="section leaderboard">
+        <div class="section-header">
+            <h2>Tabla de clasificación</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active">Todas las ediciones</button>
+            </div>
+        </div>
+        <div class="leaderboard-subtitle">
+            <h3>Ediciones esta semana</h3>
+        </div>
+        <div class="leaderboard-list" id="leaderboard-list">
+            <!-- Leaderboard items will be loaded dynamically -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3edd904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg" alt="TMDB Logo">
+                <a href="#" class="join-btn">REGISTRARSE EN LA COMUNIDAD</a>
+            </div>
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3>Lo básico</h3>
+                    <ul>
+                        <li><a href="#">Sobre TMDB</a></li>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">API for Business</a></li>
+                        <li><a href="#">Estado del sistema</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Participa</h3>
+                    <ul>
+                        <li><a href="#">Guía de aportaciones</a></li>
+                        <li><a href="#">Añadir nueva película</a></li>
+                        <li><a href="#">Añadir nueva serie</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Comunidad</h3>
+                    <ul>
+                        <li><a href="#">Directrices</a></li>
+                        <li><a href="#">Debates</a></li>
+                        <li><a href="#">Tabla de clasificación</a></li>
+                        <li><a href="#">Foros de ayuda</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Términos de uso</a></li>
+                        <li><a href="#">Términos de uso de la API</a></li>
+                        <li><a href="#">Política de privacidad</a></li>
+                        <li><a href="#">Política DMCA</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Build debe1dd (9486)</p>
+        </div>
+    </footer>
+
+    <!-- Cookie Banner -->
+    <div class="cookie-banner" id="cookie-banner">
+        <p>Al hacer clic en "Aceptar todas las cookies", usted acepta que las cookies se guarden en su dispositivo para mejorar la navegación del sitio, analizar el uso del mismo, y colaborar con nuestros estudios para marketing.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn settings">Configuración de cookies</button>
+            <button class="cookie-btn reject">Rechazarlas todas</button>
+            <button class="cookie-btn accept" id="accept-cookies">Aceptar todas las cookies</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
