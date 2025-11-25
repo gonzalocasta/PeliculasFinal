@@ -4,6 +4,7 @@
 const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMzYzODA2NzNhNTVlZGQyMGUyZDE2NTI0YTg4MTUzZCIsIm5iZiI6MTc2Mjg4MTAwNS4wNzksInN1YiI6IjY5MTM2ZGVkYzFlNzlkNzNhYmFhMjEwNyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.hMEIUzVIxyJ_gxHIRy7rh8CjE5Y3vgnr5a0SSnOUuIk';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
+const MAX_KEYWORDS_FOR_SEARCH = 3;
 
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
@@ -590,8 +591,8 @@ async function performSearch(query) {
         // Search movies by keywords
         let keywordResults = [];
         if (keywordData.results && keywordData.results.length > 0) {
-            // Get movies for each keyword (limit to first 3 keywords)
-            const keywordIds = keywordData.results.slice(0, 3).map(k => k.id);
+            // Get movies for each keyword (limit to MAX_KEYWORDS_FOR_SEARCH keywords)
+            const keywordIds = keywordData.results.slice(0, MAX_KEYWORDS_FOR_SEARCH).map(k => k.id);
             
             const keywordMoviePromises = keywordIds.map(keywordId =>
                 fetchTMDB(`/discover/movie?language=es-ES&with_keywords=${keywordId}&page=1`)
@@ -617,18 +618,15 @@ async function performSearch(query) {
             });
         }
         
-        // Combine results and remove duplicates by id
-        const allResults = [...titleResults, ...keywordResults];
-        const uniqueResults = [];
-        const seenIds = new Set();
-        
-        for (const result of allResults) {
+        // Combine results and remove duplicates using Map for efficiency
+        const resultsMap = new Map();
+        [...titleResults, ...keywordResults].forEach(result => {
             const key = `${result.mediaType}-${result.id}`;
-            if (!seenIds.has(key)) {
-                seenIds.add(key);
-                uniqueResults.push(result);
+            if (!resultsMap.has(key)) {
+                resultsMap.set(key, result);
             }
-        }
+        });
+        const uniqueResults = Array.from(resultsMap.values());
         
         // Display results
         if (uniqueResults.length > 0) {
