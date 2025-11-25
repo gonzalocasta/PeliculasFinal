@@ -554,19 +554,99 @@ async function performSearch(query) {
     // Limit query length to prevent abuse
     const sanitizedQuery = trimmedQuery.slice(0, 100);
     
+    const searchResultsSection = document.getElementById('search-results');
+    const searchResultsCards = document.getElementById('search-results-cards');
+    const searchResultsInfo = document.getElementById('search-results-info');
+    
+    // Show loading state
+    searchResultsSection.style.display = 'block';
+    searchResultsCards.innerHTML = '<div class="loading">Buscando...</div>';
+    searchResultsInfo.innerHTML = '';
+    
+    // Scroll to search results
+    searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+    
     try {
-        const data = await fetchTMDB(`/search/multi?language=es-ES&query=${encodeURIComponent(sanitizedQuery)}&page=1`);
+        // Search by title/name using multi search
+        const titleSearchPromise = fetchTMDB(`/search/multi?language=es-ES&query=${encodeURIComponent(sanitizedQuery)}&page=1`);
         
-        if (data.results && data.results.length > 0) {
-            // Show first result
-            const first = data.results.find(r => r.media_type === 'movie' || r.media_type === 'tv');
-            if (first) {
-                openMovieDetail(first.id, first.media_type);
+        // Search by keyword to get keyword IDs
+        const keywordSearchPromise = fetchTMDB(`/search/keyword?query=${encodeURIComponent(sanitizedQuery)}&page=1`);
+        
+        const [titleData, keywordData] = await Promise.all([titleSearchPromise, keywordSearchPromise]);
+        
+        // Collect results from title search (movies and TV shows only)
+        const titleResults = (titleData.results || [])
+            .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
+            .map(item => ({
+                id: item.id,
+                title: item.title || item.name,
+                date: formatDate(item.release_date || item.first_air_date),
+                rating: Math.round(item.vote_average * 10),
+                poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+                mediaType: item.media_type
+            }));
+        
+        // Search movies by keywords
+        let keywordResults = [];
+        if (keywordData.results && keywordData.results.length > 0) {
+            // Get movies for each keyword (limit to first 3 keywords)
+            const keywordIds = keywordData.results.slice(0, 3).map(k => k.id);
+            
+            const keywordMoviePromises = keywordIds.map(keywordId =>
+                fetchTMDB(`/discover/movie?language=es-ES&with_keywords=${keywordId}&page=1`)
+                    .catch(() => ({ results: [] }))
+            );
+            
+            const keywordMoviesResults = await Promise.all(keywordMoviePromises);
+            
+            // Flatten and format keyword results
+            keywordMoviesResults.forEach(data => {
+                if (data.results) {
+                    data.results.forEach(item => {
+                        keywordResults.push({
+                            id: item.id,
+                            title: item.title,
+                            date: formatDate(item.release_date),
+                            rating: Math.round(item.vote_average * 10),
+                            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+                            mediaType: 'movie'
+                        });
+                    });
+                }
+            });
+        }
+        
+        // Combine results and remove duplicates by id
+        const allResults = [...titleResults, ...keywordResults];
+        const uniqueResults = [];
+        const seenIds = new Set();
+        
+        for (const result of allResults) {
+            const key = `${result.mediaType}-${result.id}`;
+            if (!seenIds.has(key)) {
+                seenIds.add(key);
+                uniqueResults.push(result);
             }
+        }
+        
+        // Display results
+        if (uniqueResults.length > 0) {
+            searchResultsInfo.innerHTML = `<p>Se encontraron <strong>${uniqueResults.length}</strong> resultados para "<strong>${escapeHtml(sanitizedQuery)}</strong>"</p>`;
+            searchResultsCards.innerHTML = uniqueResults.map(item => createMovieCard(item)).join('');
+        } else {
+            searchResultsInfo.innerHTML = `<p>No se encontraron resultados para "<strong>${escapeHtml(sanitizedQuery)}</strong>"</p>`;
+            searchResultsCards.innerHTML = '<div class="no-results">No hay películas o series que coincidan con tu búsqueda.</div>';
         }
     } catch (error) {
         console.error('Error searching:', error);
+        searchResultsCards.innerHTML = '<div class="error">Error al buscar. Por favor, intenta de nuevo.</div>';
     }
+}
+
+function closeSearchResults() {
+    const searchResultsSection = document.getElementById('search-results');
+    searchResultsSection.style.display = 'none';
 }
 
 // Cookie banner functionality
