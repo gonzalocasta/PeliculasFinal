@@ -17,8 +17,24 @@
                     <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo">
                 </a>
                 <ul class="nav-menu">
-                    <li><a href="#peliculas-section" id="nav-peliculas">Películas</a></li>
-                    <li><a href="#series-section" id="nav-series">Series</a></li>
+                    <li class="nav-dropdown">
+                        <a href="#" class="nav-link">Películas <i class="fas fa-caret-down"></i></a>
+                        <div class="dropdown-content">
+                            <a href="peliculas.html?filter=popular">Populares</a>
+                            <a href="peliculas.html?filter=now_playing">En cartelera</a>
+                            <a href="peliculas.html?filter=upcoming">Próximamente</a>
+                            <a href="peliculas.html?filter=top_rated">Mejor valoradas</a>
+                        </div>
+                    </li>
+                    <li class="nav-dropdown">
+                        <a href="#" class="nav-link">Series <i class="fas fa-caret-down"></i></a>
+                        <div class="dropdown-content">
+                            <a href="series.html?filter=popular">Populares</a>
+                            <a href="series.html?filter=airing_today">Emitiendo hoy</a>
+                            <a href="series.html?filter=on_the_air">En emisión</a>
+                            <a href="series.html?filter=top_rated">Mejor valoradas</a>
+                        </div>
+                    </li>
                 </ul>
             </div>
             <div class="nav-right">
