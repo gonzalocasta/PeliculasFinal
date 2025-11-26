@@ -45,6 +45,22 @@
         </div>
     </section>
 
+    <!-- Search Results Section (hidden by default) -->
+    <section class="section search-results" id="search-results" style="display: none;">
+        <div class="section-header">
+            <h2>Resultados de búsqueda</h2>
+            <button class="close-search-btn" onclick="closeSearchResults()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+        </div>
+        <div class="search-results-info" id="search-results-info"></div>
+        <div class="cards-container">
+            <div class="cards-scroll search-results-grid" id="search-results-cards">
+                <!-- Search results will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
     <!-- Tendencias Section -->
     <section class="section tendencias">
         <div class="section-header">
