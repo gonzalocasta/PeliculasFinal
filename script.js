@@ -95,6 +95,8 @@ let currentTrendingWindow = 'day';
 document.addEventListener('DOMContentLoaded', function() {
     // Render all sections with API data
     loadTendencias();
+    loadPeliculas();
+    loadSeries();
     loadTrailers();
     loadPopular();
     loadGratis();
@@ -108,6 +110,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize search
     initSearch();
+    
+    // Initialize navigation
+    initNavigation();
     
     // Smooth horizontal scroll with mouse wheel
     document.querySelectorAll('.cards-container').forEach(container => {
@@ -139,6 +144,48 @@ async function loadTendencias(timeWindow = 'day') {
     } catch (error) {
         console.error('Error loading trending:', error);
         container.innerHTML = '<div class="error">Error al cargar datos</div>';
+    }
+}
+
+async function loadPeliculas(filter = 'popular') {
+    const container = document.getElementById('peliculas-cards');
+    container.innerHTML = '<div class="loading">Cargando...</div>';
+    
+    try {
+        const data = await fetchTMDB(`/movie/${filter}?language=es-ES&page=1`);
+        const items = data.results.map(item => ({
+            id: item.id,
+            title: item.title,
+            date: formatDate(item.release_date),
+            rating: Math.round(item.vote_average * 10),
+            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+            mediaType: 'movie'
+        }));
+        container.innerHTML = items.map(item => createMovieCard(item)).join('');
+    } catch (error) {
+        console.error('Error loading movies:', error);
+        container.innerHTML = '<div class="error">Error al cargar películas</div>';
+    }
+}
+
+async function loadSeries(filter = 'popular') {
+    const container = document.getElementById('series-cards');
+    container.innerHTML = '<div class="loading">Cargando...</div>';
+    
+    try {
+        const data = await fetchTMDB(`/tv/${filter}?language=es-ES&page=1`);
+        const items = data.results.map(item => ({
+            id: item.id,
+            title: item.name,
+            date: formatDate(item.first_air_date),
+            rating: Math.round(item.vote_average * 10),
+            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+            mediaType: 'tv'
+        }));
+        container.innerHTML = items.map(item => createMovieCard(item)).join('');
+    } catch (error) {
+        console.error('Error loading series:', error);
+        container.innerHTML = '<div class="error">Error al cargar series</div>';
     }
 }
 
@@ -517,9 +564,35 @@ function initToggleButtons() {
         });
     }
     
+    // Películas toggle
+    const peliculasSection = document.querySelector('.peliculas .toggle-buttons');
+    if (peliculasSection) {
+        peliculasSection.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                peliculasSection.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+                loadPeliculas(filter);
+            });
+        });
+    }
+    
+    // Series toggle
+    const seriesSection = document.querySelector('.series .toggle-buttons');
+    if (seriesSection) {
+        seriesSection.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                seriesSection.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+                loadSeries(filter);
+            });
+        });
+    }
+    
     // Other toggle buttons (visual only for now)
     document.querySelectorAll('.toggle-buttons').forEach(container => {
-        if (container === tendenciasSection) return;
+        if (container === tendenciasSection || container === peliculasSection || container === seriesSection) return;
         
         container.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -665,6 +738,32 @@ function initCookieBanner() {
     if (rejectBtn) {
         rejectBtn.addEventListener('click', function() {
             cookieBanner.classList.add('hidden');
+        });
+    }
+}
+
+// Navigation functionality
+function initNavigation() {
+    const navPeliculas = document.getElementById('nav-peliculas');
+    const navSeries = document.getElementById('nav-series');
+    
+    if (navPeliculas) {
+        navPeliculas.addEventListener('click', function(e) {
+            e.preventDefault();
+            const peliculasSection = document.getElementById('peliculas-section');
+            if (peliculasSection) {
+                peliculasSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+    
+    if (navSeries) {
+        navSeries.addEventListener('click', function(e) {
+            e.preventDefault();
+            const seriesSection = document.getElementById('series-section');
+            if (seriesSection) {
+                seriesSection.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     }
 }
