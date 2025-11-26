@@ -785,3 +785,68 @@ document.addEventListener('click', function(e) {
         closeTrailer();
     }
 });
+
+// Navigation functions for movies and series
+async function showMovies() {
+    const searchResultsSection = document.getElementById('search-results');
+    const searchResultsCards = document.getElementById('search-results-cards');
+    const searchResultsInfo = document.getElementById('search-results-info');
+    
+    // Show loading state
+    searchResultsSection.style.display = 'block';
+    searchResultsCards.innerHTML = '<div class="loading">Cargando películas...</div>';
+    searchResultsInfo.innerHTML = '';
+    
+    // Scroll to search results
+    searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+    
+    try {
+        const data = await fetchTMDB('/movie/popular?language=es-ES&page=1');
+        const items = data.results.map(item => ({
+            id: item.id,
+            title: item.title,
+            date: formatDate(item.release_date),
+            rating: Math.round(item.vote_average * 10),
+            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+            mediaType: 'movie'
+        }));
+        
+        searchResultsInfo.innerHTML = `<p><strong>Películas populares</strong></p>`;
+        searchResultsCards.innerHTML = items.map(item => createMovieCard(item)).join('');
+    } catch (error) {
+        console.error('Error loading movies:', error);
+        searchResultsCards.innerHTML = '<div class="error">Error al cargar películas</div>';
+    }
+}
+
+async function showSeries() {
+    const searchResultsSection = document.getElementById('search-results');
+    const searchResultsCards = document.getElementById('search-results-cards');
+    const searchResultsInfo = document.getElementById('search-results-info');
+    
+    // Show loading state
+    searchResultsSection.style.display = 'block';
+    searchResultsCards.innerHTML = '<div class="loading">Cargando series...</div>';
+    searchResultsInfo.innerHTML = '';
+    
+    // Scroll to search results
+    searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+    
+    try {
+        const data = await fetchTMDB('/tv/popular?language=es-ES&page=1');
+        const items = data.results.map(item => ({
+            id: item.id,
+            title: item.name,
+            date: formatDate(item.first_air_date),
+            rating: Math.round(item.vote_average * 10),
+            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+            mediaType: 'tv'
+        }));
+        
+        searchResultsInfo.innerHTML = `<p><strong>Series populares</strong></p>`;
+        searchResultsCards.innerHTML = items.map(item => createMovieCard(item)).join('');
+    } catch (error) {
+        console.error('Error loading series:', error);
+        searchResultsCards.innerHTML = '<div class="error">Error al cargar series</div>';
+    }
+}
