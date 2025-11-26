@@ -1476,3 +1476,34 @@ ul {
         gap: 15px;
     }
 }
+
+/* Browse Section Close Button */
+.close-browse-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #032541;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.close-browse-btn:hover {
+    background: #01b4e4;
+}
+
+.browse-section {
+    min-height: 100vh;
+    background: #f8f9fa;
+}
