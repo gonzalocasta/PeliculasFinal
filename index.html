@@ -17,10 +17,8 @@
                     <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo">
                 </a>
                 <ul class="nav-menu">
-                    <li><a href="#">Películas <i class="fas fa-caret-down"></i></a></li>
-                    <li><a href="#">Series <i class="fas fa-caret-down"></i></a></li>
-                    <li><a href="#">Gente <i class="fas fa-caret-down"></i></a></li>
-                    <li><a href="#">Más <i class="fas fa-caret-down"></i></a></li>
+                    <li><a href="#peliculas-section" id="nav-peliculas">Películas</a></li>
+                    <li><a href="#series-section" id="nav-series">Series</a></li>
                 </ul>
             </div>
             <div class="nav-right">
@@ -73,6 +71,42 @@
         <div class="cards-container">
             <div class="cards-scroll" id="tendencias-cards">
                 <!-- Cards will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Películas Section -->
+    <section class="section peliculas" id="peliculas-section">
+        <div class="section-header">
+            <h2>Películas</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-filter="popular">Populares</button>
+                <button class="toggle-btn" data-filter="now_playing">En cartelera</button>
+                <button class="toggle-btn" data-filter="upcoming">Próximamente</button>
+                <button class="toggle-btn" data-filter="top_rated">Mejor valoradas</button>
+            </div>
+        </div>
+        <div class="cards-container">
+            <div class="cards-scroll" id="peliculas-cards">
+                <!-- Movie cards will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Series Section -->
+    <section class="section series" id="series-section">
+        <div class="section-header">
+            <h2>Series</h2>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-filter="popular">Populares</button>
+                <button class="toggle-btn" data-filter="airing_today">Emitiendo hoy</button>
+                <button class="toggle-btn" data-filter="on_the_air">En emisión</button>
+                <button class="toggle-btn" data-filter="top_rated">Mejor valoradas</button>
+            </div>
+        </div>
+        <div class="cards-container">
+            <div class="cards-scroll" id="series-cards">
+                <!-- Series cards will be loaded dynamically -->
             </div>
         </div>
     </section>
