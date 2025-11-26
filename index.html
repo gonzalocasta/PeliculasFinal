@@ -20,19 +20,19 @@
                     <li class="nav-dropdown">
                         <a href="#" class="nav-link">Películas <i class="fas fa-caret-down"></i></a>
                         <div class="dropdown-content">
-                            <a href="peliculas.html?filter=popular">Populares</a>
-                            <a href="peliculas.html?filter=now_playing">En cartelera</a>
-                            <a href="peliculas.html?filter=upcoming">Próximamente</a>
-                            <a href="peliculas.html?filter=top_rated">Mejor valoradas</a>
+                            <a href="#" onclick="showBrowseSection('movie', 'popular'); return false;">Populares</a>
+                            <a href="#" onclick="showBrowseSection('movie', 'now_playing'); return false;">En cartelera</a>
+                            <a href="#" onclick="showBrowseSection('movie', 'upcoming'); return false;">Próximamente</a>
+                            <a href="#" onclick="showBrowseSection('movie', 'top_rated'); return false;">Mejor valoradas</a>
                         </div>
                     </li>
                     <li class="nav-dropdown">
                         <a href="#" class="nav-link">Series <i class="fas fa-caret-down"></i></a>
                         <div class="dropdown-content">
-                            <a href="series.html?filter=popular">Populares</a>
-                            <a href="series.html?filter=airing_today">Emitiendo hoy</a>
-                            <a href="series.html?filter=on_the_air">En emisión</a>
-                            <a href="series.html?filter=top_rated">Mejor valoradas</a>
+                            <a href="#" onclick="showBrowseSection('tv', 'popular'); return false;">Populares</a>
+                            <a href="#" onclick="showBrowseSection('tv', 'airing_today'); return false;">Emitiendo hoy</a>
+                            <a href="#" onclick="showBrowseSection('tv', 'on_the_air'); return false;">En emisión</a>
+                            <a href="#" onclick="showBrowseSection('tv', 'top_rated'); return false;">Mejor valoradas</a>
                         </div>
                     </li>
                 </ul>
@@ -75,8 +75,45 @@
         </div>
     </section>
 
+    <!-- Browse Section (Movies/Series with filter) - hidden by default -->
+    <section class="browse-section" id="browse-section" style="display: none;">
+        <section class="page-header">
+            <h1 id="browse-title">Películas</h1>
+        </section>
+        <section class="filter-section">
+            <div class="filter-container">
+                <div class="filter-sidebar">
+                    <div class="filter-group">
+                        <h3>Tipo</h3>
+                        <div class="filter-buttons-vertical" id="browse-type-buttons">
+                            <button class="filter-btn-vertical active" data-type="movie">Películas</button>
+                            <button class="filter-btn-vertical" data-type="tv">Series</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <h3>Categoría</h3>
+                        <div class="filter-buttons-vertical" id="browse-filter-buttons">
+                            <!-- Filter buttons will be loaded dynamically based on type -->
+                        </div>
+                    </div>
+                </div>
+                <div class="content-area">
+                    <div class="content-grid" id="browse-grid">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                    <div class="load-more-container">
+                        <button class="load-more-btn" id="browse-load-more-btn">Cargar más</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <button class="close-browse-btn" onclick="closeBrowseSection()">
+            <i class="fas fa-times"></i> Volver al inicio
+        </button>
+    </section>
+
     <!-- Tendencias Section -->
-    <section class="section tendencias">
+    <section class="section tendencias" id="tendencias-section">
         <div class="section-header">
             <h2>Tendencias</h2>
             <div class="toggle-buttons">
@@ -128,7 +165,7 @@
     </section>
 
     <!-- Últimos Tráileres Section -->
-    <section class="section trailers">
+    <section class="section trailers" id="trailers-section">
         <div class="trailers-bg">
             <div class="section-header light">
                 <h2>Últimos tráileres</h2>
@@ -149,7 +186,7 @@
     </section>
 
     <!-- Lo más popular Section -->
-    <section class="section popular">
+    <section class="section popular" id="popular-section">
         <div class="section-header">
             <h2>Lo más popular</h2>
             <div class="toggle-buttons">
@@ -167,7 +204,7 @@
     </section>
 
     <!-- Ver Gratis Section -->
-    <section class="section ver-gratis">
+    <section class="section ver-gratis" id="gratis-section">
         <div class="section-header">
             <h2>Ver gratis</h2>
             <div class="toggle-buttons">
@@ -183,7 +220,7 @@
     </section>
 
     <!-- Tabla de Clasificación Section -->
-    <section class="section leaderboard">
+    <section class="section leaderboard" id="leaderboard-section">
         <div class="section-header">
             <h2>Tabla de clasificación</h2>
             <div class="toggle-buttons">

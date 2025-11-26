@@ -5,6 +5,7 @@ const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMzYzODA2NzNhNTVlZGQyMGUyZDE2
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 const MAX_KEYWORDS_FOR_SEARCH = 3;
+const DEFAULT_MEDIA_TYPE = 'movie';
 
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
@@ -113,6 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize navigation
     initNavigation();
+    
+    // Initialize browse section
+    initBrowseSection();
     
     // Smooth horizontal scroll with mouse wheel
     document.querySelectorAll('.cards-container').forEach(container => {
@@ -285,7 +289,7 @@ function renderLeaderboard() {
 function createMovieCard(item) {
     const ratingClass = item.rating >= 70 ? 'high' : item.rating >= 50 ? 'medium' : 'low';
     const ratingDisplay = item.rating > 0 ? `${item.rating}<sup>%</sup>` : 'NR';
-    const safeMediaType = isValidMediaType(item.mediaType) ? item.mediaType : 'movie';
+    const safeMediaType = isValidMediaType(item.mediaType) ? item.mediaType : DEFAULT_MEDIA_TYPE;
     const safeId = parseInt(item.id, 10);
     
     return `
@@ -829,4 +833,268 @@ async function showSeries() {
         console.error('Error loading series:', error);
         searchResultsCards.innerHTML = '<div class="error">Error al cargar series</div>';
     }
+}
+
+// ========== Browse Section Functionality ==========
+// Unified browse section for movies and series
+
+let browseCurrentType = 'movie'; // 'movie' or 'tv'
+let browseCurrentFilter = 'popular';
+let browseCurrentPage = 1;
+let browseIsLoading = false;
+
+// Filter configurations
+const movieFilters = [
+    { value: 'popular', label: 'Populares' },
+    { value: 'now_playing', label: 'En cartelera' },
+    { value: 'upcoming', label: 'Próximamente' },
+    { value: 'top_rated', label: 'Mejor valoradas' }
+];
+
+const tvFilters = [
+    { value: 'popular', label: 'Populares' },
+    { value: 'airing_today', label: 'Emitiendo hoy' },
+    { value: 'on_the_air', label: 'En emisión' },
+    { value: 'top_rated', label: 'Mejor valoradas' }
+];
+
+// Show browse section with specific type and filter
+function showBrowseSection(type, filter) {
+    // Validate type
+    if (!isValidMediaType(type)) {
+        console.error('Invalid type');
+        return;
+    }
+    
+    // Validate filter based on type
+    const validFilters = type === 'movie' ? movieFilters : tvFilters;
+    if (!validFilters.some(f => f.value === filter)) {
+        filter = 'popular'; // Default to popular if invalid
+    }
+    
+    browseCurrentType = type;
+    browseCurrentFilter = filter;
+    browseCurrentPage = 1;
+    
+    // Hide main content sections
+    toggleMainSections(false);
+    
+    // Show browse section
+    const browseSection = document.getElementById('browse-section');
+    browseSection.style.display = 'block';
+    
+    // Update title
+    document.getElementById('browse-title').textContent = type === 'movie' ? 'Películas' : 'Series';
+    
+    // Update type buttons
+    updateBrowseTypeButtons(type);
+    
+    // Update filter buttons
+    updateBrowseFilterButtons(type, filter);
+    
+    // Load content
+    loadBrowseContent(true);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Close browse section and show main content
+function closeBrowseSection() {
+    document.getElementById('browse-section').style.display = 'none';
+    toggleMainSections(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Toggle main content sections visibility
+function toggleMainSections(show) {
+    const sections = [
+        'tendencias-section', 'peliculas-section', 
+        'series-section', 'trailers-section', 'popular-section', 
+        'gratis-section', 'leaderboard-section'
+    ];
+    
+    // Handle hero section separately (it uses a class selector)
+    const heroEl = document.querySelector('.hero');
+    if (heroEl) heroEl.style.display = show ? '' : 'none';
+    
+    // Handle search results section
+    const searchResultsEl = document.getElementById('search-results');
+    if (searchResultsEl) searchResultsEl.style.display = show ? 'none' : 'none';
+    
+    // Handle all other sections
+    sections.forEach(id => {
+        const sectionEl = document.getElementById(id);
+        if (sectionEl) sectionEl.style.display = show ? '' : 'none';
+    });
+}
+
+// Update type buttons (Movies/Series)
+function updateBrowseTypeButtons(currentType) {
+    const container = document.getElementById('browse-type-buttons');
+    if (!container) return;
+    
+    container.querySelectorAll('.filter-btn-vertical').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.type === currentType) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Update filter buttons based on type
+function updateBrowseFilterButtons(type, currentFilter) {
+    const container = document.getElementById('browse-filter-buttons');
+    if (!container) return;
+    
+    const filters = type === 'movie' ? movieFilters : tvFilters;
+    
+    container.innerHTML = filters.map(f => `
+        <button class="filter-btn-vertical ${f.value === currentFilter ? 'active' : ''}" 
+                data-filter="${escapeAttr(f.value)}">${escapeHtml(f.label)}</button>
+    `).join('');
+    
+    // Add click handlers
+    container.querySelectorAll('.filter-btn-vertical').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            if (filter && filter !== browseCurrentFilter) {
+                browseCurrentFilter = filter;
+                browseCurrentPage = 1;
+                updateBrowseFilterButtons(browseCurrentType, filter);
+                loadBrowseContent(true);
+            }
+        });
+    });
+}
+
+// Initialize browse section event listeners
+function initBrowseSection() {
+    // Type buttons
+    const typeContainer = document.getElementById('browse-type-buttons');
+    if (typeContainer) {
+        typeContainer.querySelectorAll('.filter-btn-vertical').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.dataset.type;
+                if (type && type !== browseCurrentType) {
+                    browseCurrentType = type;
+                    browseCurrentFilter = 'popular';
+                    browseCurrentPage = 1;
+                    
+                    // Update title
+                    document.getElementById('browse-title').textContent = type === 'movie' ? 'Películas' : 'Series';
+                    
+                    // Update buttons
+                    updateBrowseTypeButtons(type);
+                    updateBrowseFilterButtons(type, 'popular');
+                    
+                    // Load content
+                    loadBrowseContent(true);
+                }
+            });
+        });
+    }
+    
+    // Load more button
+    const loadMoreBtn = document.getElementById('browse-load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            if (!browseIsLoading) {
+                browseCurrentPage++;
+                loadBrowseContent(false);
+            }
+        });
+    }
+}
+
+// Load browse content (movies or series)
+async function loadBrowseContent(clearExisting = true) {
+    const container = document.getElementById('browse-grid');
+    const loadMoreBtn = document.getElementById('browse-load-more-btn');
+    
+    if (!container) return;
+    
+    browseIsLoading = true;
+    
+    if (clearExisting) {
+        container.innerHTML = '<div class="loading">Cargando...</div>';
+    }
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = 'Cargando...';
+    }
+    
+    try {
+        const endpoint = browseCurrentType === 'movie' 
+            ? `/movie/${browseCurrentFilter}?language=es-ES&page=${browseCurrentPage}`
+            : `/tv/${browseCurrentFilter}?language=es-ES&page=${browseCurrentPage}`;
+        
+        const data = await fetchTMDB(endpoint);
+        
+        const items = data.results.map(item => ({
+            id: item.id,
+            title: browseCurrentType === 'movie' ? item.title : item.name,
+            date: formatDate(browseCurrentType === 'movie' ? item.release_date : item.first_air_date),
+            rating: Math.round(item.vote_average * 10),
+            poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+            mediaType: browseCurrentType
+        }));
+        
+        const cardsHtml = items.map(item => createBrowseCardGrid(item)).join('');
+        
+        if (clearExisting) {
+            container.innerHTML = cardsHtml;
+        } else {
+            container.insertAdjacentHTML('beforeend', cardsHtml);
+        }
+        
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Cargar más';
+            // Hide button if no more pages
+            if (browseCurrentPage >= data.total_pages) {
+                loadMoreBtn.style.display = 'none';
+            } else {
+                loadMoreBtn.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading browse content:', error);
+        if (clearExisting) {
+            container.innerHTML = '<div class="error">Error al cargar contenido. Por favor, intenta de nuevo.</div>';
+        }
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Cargar más';
+        }
+    }
+    
+    browseIsLoading = false;
+}
+
+// Create card for browse grid
+function createBrowseCardGrid(item) {
+    const ratingClass = item.rating >= 70 ? 'high' : item.rating >= 50 ? 'medium' : 'low';
+    const ratingDisplay = item.rating > 0 ? `${item.rating}<sup>%</sup>` : 'NR';
+    const safeMediaType = isValidMediaType(item.mediaType) ? item.mediaType : DEFAULT_MEDIA_TYPE;
+    const safeId = parseInt(item.id, 10);
+    
+    return `
+        <div class="card-grid" onclick="openMovieDetail(${safeId}, '${safeMediaType}')">
+            <div class="card-poster">
+                <img src="${escapeAttr(item.poster)}" alt="${escapeAttr(item.title)}" loading="lazy">
+                <div class="card-rating ${ratingClass}">
+                    <span>${ratingDisplay}</span>
+                </div>
+                <div class="card-menu">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+            </div>
+            <div class="card-info">
+                <div class="card-title">${escapeHtml(item.title)}</div>
+                <div class="card-date">${escapeHtml(item.date)}</div>
+            </div>
+        </div>
+    `;
 }
