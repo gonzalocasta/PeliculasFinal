@@ -744,28 +744,8 @@ function initCookieBanner() {
 
 // Navigation functionality
 function initNavigation() {
-    const navPeliculas = document.getElementById('nav-peliculas');
-    const navSeries = document.getElementById('nav-series');
-    
-    if (navPeliculas) {
-        navPeliculas.addEventListener('click', function(e) {
-            e.preventDefault();
-            const peliculasSection = document.getElementById('peliculas-section');
-            if (peliculasSection) {
-                peliculasSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
-    
-    if (navSeries) {
-        navSeries.addEventListener('click', function(e) {
-            e.preventDefault();
-            const seriesSection = document.getElementById('series-section');
-            if (seriesSection) {
-                seriesSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
+    // Dropdown navigation is handled via CSS hover states
+    // This function can be used for mobile menu toggle if needed
 }
 
 // Close modals on escape key
