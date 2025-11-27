@@ -54,11 +54,6 @@ ul {
     text-transform: uppercase;
 }
 
-.logo img {
-    height: 20px;
-    width: auto;
-}
-
 .nav-menu {
     display: flex;
     gap: 24px;
