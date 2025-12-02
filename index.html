@@ -42,7 +42,14 @@
                 <a href="#" class="nav-lang">es</a>
                 <a href="#" class="nav-icon"><i class="fas fa-bell"></i></a>
                 <a href="#" class="user-avatar">G</a>
-                <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                <div class="header-search-container">
+                    <a href="#" class="nav-icon search-icon" onclick="toggleHeaderSearch(); return false;"><i class="fas fa-search"></i></a>
+                    <div class="header-search-bar" id="header-search-bar">
+                        <input type="text" id="header-search-input" placeholder="Buscar película o palabra clave...">
+                        <button type="button" onclick="performHeaderSearch()"><i class="fas fa-search"></i></button>
+                        <button type="button" class="close-search" onclick="closeHeaderSearch()"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
