@@ -451,7 +451,7 @@ async function openMovieDetail(id, mediaType) {
                 <h2>Reparto principal</h2>
                 <div class="cast-scroll">
                     ${cast.map(person => `
-                        <div class="cast-card">
+                        <div class="cast-card clickable" onclick="event.stopPropagation(); showActorMovies(${parseInt(person.id, 10)}, '${escapeAttr(person.name)}')">
                             <img src="${person.profile_path ? escapeAttr(`${IMAGE_BASE_URL}/w185${person.profile_path}`) : 'https://via.placeholder.com/185x278?text=No+Image'}" alt="${escapeAttr(person.name)}">
                             <div class="cast-info">
                                 <span class="cast-name">${escapeHtml(person.name)}</span>
@@ -494,6 +494,75 @@ function closeMovieDetail() {
     const modal = document.getElementById('movie-modal');
     modal.classList.remove('active');
     document.body.style.overflow = '';
+}
+
+// Show actor's movies when clicking on a cast member
+async function showActorMovies(personId, personName) {
+    // Validate personId
+    const safeId = parseInt(personId, 10);
+    if (isNaN(safeId) || safeId <= 0) {
+        console.error('Invalid person ID');
+        return;
+    }
+    
+    // Close movie detail modal
+    closeMovieDetail();
+    
+    const searchResultsSection = document.getElementById('search-results');
+    const searchResultsCards = document.getElementById('search-results-cards');
+    const searchResultsInfo = document.getElementById('search-results-info');
+    
+    // Hide browse section if visible
+    const browseSection = document.getElementById('browse-section');
+    if (browseSection) {
+        browseSection.style.display = 'none';
+    }
+    
+    // Show main sections
+    toggleMainSections(true);
+    
+    // Show loading state
+    searchResultsSection.style.display = 'block';
+    searchResultsCards.innerHTML = '<div class="loading">Cargando películas de ' + escapeHtml(personName) + '...</div>';
+    searchResultsInfo.innerHTML = '';
+    
+    // Scroll to search results
+    searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+    
+    try {
+        // Fetch actor's movie and TV credits
+        const data = await fetchTMDB(`/person/${safeId}/combined_credits?language=es-ES`);
+        
+        // Filter and format cast credits (movies and TV shows where the person acted)
+        const credits = (data.cast || [])
+            .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
+            .sort((a, b) => {
+                // Sort by popularity or date
+                const dateA = a.release_date || a.first_air_date || '';
+                const dateB = b.release_date || b.first_air_date || '';
+                return dateB.localeCompare(dateA);
+            })
+            .map(item => ({
+                id: item.id,
+                title: item.title || item.name,
+                date: formatDate(item.release_date || item.first_air_date),
+                rating: Math.round(item.vote_average * 10),
+                poster: item.poster_path ? `${IMAGE_BASE_URL}/w220_and_h330_face${item.poster_path}` : 'https://via.placeholder.com/220x330?text=No+Image',
+                mediaType: item.media_type
+            }));
+        
+        // Display results
+        if (credits.length > 0) {
+            searchResultsInfo.innerHTML = `<p>Películas y series de <strong>${escapeHtml(personName)}</strong> (${credits.length} resultados)</p>`;
+            searchResultsCards.innerHTML = credits.map(item => createMovieCard(item)).join('');
+        } else {
+            searchResultsInfo.innerHTML = `<p>No se encontraron películas o series para <strong>${escapeHtml(personName)}</strong></p>`;
+            searchResultsCards.innerHTML = '<div class="no-results">No hay películas o series disponibles para este actor.</div>';
+        }
+    } catch (error) {
+        console.error('Error loading actor movies:', error);
+        searchResultsCards.innerHTML = '<div class="error">Error al cargar las películas. Por favor, intenta de nuevo.</div>';
+    }
 }
 
 // Trailer player
