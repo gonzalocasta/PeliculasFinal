@@ -451,7 +451,7 @@ async function openMovieDetail(id, mediaType) {
                 <h2>Reparto principal</h2>
                 <div class="cast-scroll">
                     ${cast.map(person => `
-                        <div class="cast-card clickable" onclick="event.stopPropagation(); showActorMovies(${parseInt(person.id, 10)}, '${escapeAttr(person.name)}')">
+                        <div class="cast-card clickable" data-person-id="${parseInt(person.id, 10)}" data-person-name="${escapeAttr(person.name)}" onclick="event.stopPropagation(); showActorMovies(this.dataset.personId, this.dataset.personName)">
                             <img src="${person.profile_path ? escapeAttr(`${IMAGE_BASE_URL}/w185${person.profile_path}`) : 'https://via.placeholder.com/185x278?text=No+Image'}" alt="${escapeAttr(person.name)}">
                             <div class="cast-info">
                                 <span class="cast-name">${escapeHtml(person.name)}</span>
@@ -523,7 +523,7 @@ async function showActorMovies(personId, personName) {
     
     // Show loading state
     searchResultsSection.style.display = 'block';
-    searchResultsCards.innerHTML = '<div class="loading">Cargando películas de ' + escapeHtml(personName) + '...</div>';
+    searchResultsCards.innerHTML = `<div class="loading">Cargando películas de ${escapeHtml(personName)}...</div>`;
     searchResultsInfo.innerHTML = '';
     
     // Scroll to search results
@@ -537,7 +537,7 @@ async function showActorMovies(personId, personName) {
         const credits = (data.cast || [])
             .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
             .sort((a, b) => {
-                // Sort by popularity or date
+                // Sort by release date (most recent first)
                 const dateA = a.release_date || a.first_air_date || '';
                 const dateB = b.release_date || b.first_air_date || '';
                 return dateB.localeCompare(dateA);
