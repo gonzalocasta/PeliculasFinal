@@ -112,6 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize search
     initSearch();
     
+    // Initialize header search
+    initHeaderSearch();
+    
     // Initialize navigation
     initNavigation();
     
@@ -1097,4 +1100,94 @@ function createBrowseCardGrid(item) {
             </div>
         </div>
     `;
+}
+
+// ========== Header Search Functionality ==========
+
+// Toggle header search bar visibility
+function toggleHeaderSearch() {
+    const searchBar = document.getElementById('header-search-bar');
+    const searchInput = document.getElementById('header-search-input');
+    
+    if (searchBar.classList.contains('active')) {
+        closeHeaderSearch();
+    } else {
+        searchBar.classList.add('active');
+        searchInput.focus();
+    }
+}
+
+// Close header search bar
+function closeHeaderSearch() {
+    const searchBar = document.getElementById('header-search-bar');
+    const searchInput = document.getElementById('header-search-input');
+    
+    searchBar.classList.remove('active');
+    searchInput.value = '';
+}
+
+// Perform search from header search bar
+function performHeaderSearch() {
+    const searchInput = document.getElementById('header-search-input');
+    const query = searchInput.value;
+    
+    if (query && query.trim()) {
+        // Close browse section if open
+        const browseSection = document.getElementById('browse-section');
+        if (browseSection && browseSection.style.display !== 'none') {
+            closeBrowseSection();
+        }
+        
+        // Perform the search using existing function
+        performSearch(query);
+        
+        // Close the header search bar
+        closeHeaderSearch();
+    }
+}
+
+// Initialize header search events
+function initHeaderSearch() {
+    const searchInput = document.getElementById('header-search-input');
+    const searchToggle = document.getElementById('header-search-toggle');
+    const searchBtn = document.getElementById('header-search-btn');
+    const searchClose = document.getElementById('header-search-close');
+    
+    // Toggle search bar on icon click
+    if (searchToggle) {
+        searchToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleHeaderSearch();
+        });
+    }
+    
+    // Search button click
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            performHeaderSearch();
+        });
+    }
+    
+    // Close button click
+    if (searchClose) {
+        searchClose.addEventListener('click', () => {
+            closeHeaderSearch();
+        });
+    }
+    
+    if (searchInput) {
+        // Handle Enter key press
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performHeaderSearch();
+            }
+        });
+        
+        // Handle Escape key to close
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHeaderSearch();
+            }
+        });
+    }
 }
