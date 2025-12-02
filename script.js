@@ -1149,6 +1149,31 @@ function performHeaderSearch() {
 // Initialize header search events
 function initHeaderSearch() {
     const searchInput = document.getElementById('header-search-input');
+    const searchToggle = document.getElementById('header-search-toggle');
+    const searchBtn = document.getElementById('header-search-btn');
+    const searchClose = document.getElementById('header-search-close');
+    
+    // Toggle search bar on icon click
+    if (searchToggle) {
+        searchToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleHeaderSearch();
+        });
+    }
+    
+    // Search button click
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            performHeaderSearch();
+        });
+    }
+    
+    // Close button click
+    if (searchClose) {
+        searchClose.addEventListener('click', () => {
+            closeHeaderSearch();
+        });
+    }
     
     if (searchInput) {
         // Handle Enter key press

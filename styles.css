@@ -1625,6 +1625,7 @@ ul {
         border-radius: 0;
         border-left: none;
         border-right: none;
+        animation: slideInMobile 0.3s ease;
     }
 
     .header-search-bar input {
@@ -1632,7 +1633,7 @@ ul {
         width: auto;
     }
 
-    @keyframes slideIn {
+    @keyframes slideInMobile {
         from {
             opacity: 0;
         }
