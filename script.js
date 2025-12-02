@@ -752,6 +752,25 @@ function initNavigation() {
     // This function can be used for mobile menu toggle if needed
 }
 
+// Go to home screen - closes browse and search sections, shows main content
+function goHome() {
+    // Close browse section if visible
+    document.getElementById('browse-section').style.display = 'none';
+    
+    // Close search results if visible
+    document.getElementById('search-results').style.display = 'none';
+    
+    // Close any open modals
+    closeMovieDetail();
+    closeTrailer();
+    
+    // Show all main content sections
+    toggleMainSections(true);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Close modals on escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
