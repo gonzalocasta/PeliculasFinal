@@ -752,6 +752,31 @@ function initNavigation() {
     // This function can be used for mobile menu toggle if needed
 }
 
+// Go to home - closes any open sections and returns to the initial home view
+function goHome() {
+    // Close browse section if open
+    const browseSection = document.getElementById('browse-section');
+    if (browseSection) {
+        browseSection.style.display = 'none';
+    }
+    
+    // Close search results if open
+    const searchResults = document.getElementById('search-results');
+    if (searchResults) {
+        searchResults.style.display = 'none';
+    }
+    
+    // Close any open modals
+    closeMovieDetail();
+    closeTrailer();
+    
+    // Show all main sections
+    toggleMainSections(true);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Close modals on escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
